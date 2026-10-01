@@ -2,9 +2,9 @@
 
 Zeigt Reolink-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream wird mit ffmpeg in Einzelbilder gewandelt und nur auf `127.0.0.1` ausgeliefert. Passwörter stehen nicht in der Mirror-Konfiguration.
 
-Die Kameras am Standort sind WLAN, zum Beispiel `garden`. Der Name ist nur der Ort: `garden`, `garage`, `wohnzimmer` oder ein anderer Begriff. Weitere WLAN-Kameras kommen als eigene Einträge dazu.
+Die Namen der WLAN-Kameras sind nicht fix. `garden`, `garage` oder `wohnzimmer` bezeichnen nur den Standort. Fest ist die IP der Kamera in der Konfiguration.
 
-`doorbell` ist die PoE-Klingel. Die unterscheidet sich von den WLAN-Kameras durch das PoE-Format und liefert die ONVIF-Events. Eine WLAN-Doorbell ist das nicht.
+Die Klingel geht nur als PoE-Klingel, Eintrag `doorbell`. Eine WLAN-Doorbell geht nicht.
 
 ## Funktionen
 
@@ -75,7 +75,7 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
 }
 ```
 
-`garden` ist die WLAN-Kamera und nur ein Standortname. Dieselbe Form gilt für `garage`, `wohnzimmer` und weitere Orte. `doorbell` bleibt der Name der PoE-Klingel.
+`garden` ist nur der Standort der WLAN-Kamera. `garage` oder `wohnzimmer` funktionieren genauso, jeweils mit eigener IP. `doorbell` ist die PoE-Klingel. Eine WLAN-Doorbell funktioniert nicht.
 
 | Option | Bedeutung |
 | --- | --- |
@@ -89,8 +89,8 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
 | `settings.motion.enabled` | Bewegungs-Events der PoE-Klingel auswerten |
 | `settings.motion.switchCamera` | Bei Bewegung auf `doorbell` schalten |
 | `settings.motion.timeout` | Anzeigedauer nach Bewegung, in Millisekunden |
-| Standortname | WLAN-Kamera. Name nur als Ort, zum Beispiel `garden` oder `wohnzimmer` |
-| `doorbell` | PoE-Klingel, fest dieser Name |
+| Standortname | WLAN-Kamera. Name frei, nur der Ort. Fest ist die IP |
+| `doorbell` | PoE-Klingel. Eine WLAN-Doorbell geht nicht |
 | `doorbell.onvifPort` | ONVIF-Port der PoE-Klingel, Standard `8000` |
 
 `stream` ist der RTSP-Pfad der Kamera, zum Beispiel `Preview_01_sub` für den Substream.
