@@ -1,0 +1,30 @@
+.reolink-wrapper {
+  display: block;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.reolink-video {
+  display: block;
+  width: 100%;
+  min-width: 320px;
+  height: auto;
+}
+
+.reolink-idle-hidden {
+  display: none;
+}
+
+.reolink-disabled {
+  min-width: 300px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reolink-disabled-text {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 18px;
+  text-align: center;
+}

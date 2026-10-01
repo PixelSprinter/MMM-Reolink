@@ -1,0 +1,7 @@
+{
+  "name": "mmm-reolink",
+  "version": "1.0.0",
+  "description": "Local Reolink integration for MagicMirror",
+  "main": "node_helper.js",
+  "dependencies": {}
+}
