@@ -60,7 +60,7 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
     garden: {
       enabled: true,
       credential: "garden",
-      ip: "192.168.1.91",
+      ip: "192.168.1.10",
       rtspPort: 554,
       stream: "Preview_01_sub"
     },
@@ -68,7 +68,7 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
     garage: {
       enabled: true,
       credential: "garage",
-      ip: "192.168.1.93",
+      ip: "192.168.1.12",
       rtspPort: 554,
       stream: "Preview_01_sub"
     },
@@ -76,7 +76,7 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
     doorbell: {
       enabled: true,
       credential: "doorbell",
-      ip: "192.168.1.92",
+      ip: "192.168.1.11",
       rtspPort: 554,
       stream: "Preview_01_sub",
       onvifPort: 8000,
