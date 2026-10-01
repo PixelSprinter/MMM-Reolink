@@ -1,5 +1,7 @@
 # MMM-Reolink
 
+Dieses Modul stammt nicht von Reolink. Ich bin nicht Reolink, und das Projekt steht in keiner Verbindung zu Reolink. Reolink ist eine Marke der jeweiligen Inhaber. Das Modul wird nicht von Reolink entwickelt, geprüft oder unterstützt.
+
 Zeigt Reolink-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream wird mit ffmpeg in Einzelbilder gewandelt und nur auf `127.0.0.1` ausgeliefert. Passwörter stehen nicht in der Mirror-Konfiguration.
 
 Reolink hat viele Kameras. Jede bekommt einen freien Namen, nur als Standort, zum Beispiel `garden`, `garage` oder `wohnzimmer`. Fest ist die IP in der Konfiguration.
