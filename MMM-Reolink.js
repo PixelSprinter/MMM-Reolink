@@ -31,7 +31,7 @@ Module.register("MMM-Reolink", {
       rtspPort: 554,
       stream: "Preview_01_sub",
       onvifPort: 8000,
-      poe: true
+      doorbell: true
     },
 
     videoPort: 8090

@@ -4,12 +4,12 @@ Zeigt Reolink-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream 
 
 Reolink hat viele Kameras. Jede bekommt einen freien Namen, nur als Standort, zum Beispiel `garden`, `garage` oder `wohnzimmer`. Fest ist die IP in der Konfiguration.
 
-Nur die PoE-Klingel braucht den Indikator `poe: true`. Daran hängt der ONVIF-Dienst für Klingeln und Bewegung. Eine WLAN-Doorbell überträgt diesen Dienst nicht und geht deshalb nicht.
+Nur die PoE-Klingel braucht den Indikator `doorbell: true`. Daran hängt der ONVIF-Dienst für Klingeln und Bewegung. Eine WLAN-Doorbell überträgt diesen Dienst nicht und geht deshalb nicht.
 
 ## Funktionen
 
 - **Viele Kameras:** Namen frei wählbar, jede mit eigener IP. Die Hauptkamera läuft, solange sie aktiviert ist.
-- **PoE-Klingel:** Der Eintrag mit `poe: true`. Ein ONVIF-Event `Visitor` schaltet das Bild auf diese Kamera. Nach `doorbellTimeout` (Standard 30 Sekunden) geht die Ansicht zurück zur Hauptkamera.
+- **PoE-Klingel:** Der Eintrag mit `doorbell: true`. Ein ONVIF-Event `Visitor` schaltet das Bild auf diese Kamera. Nach `doorbellTimeout` (Standard 30 Sekunden) geht die Ansicht zurück zur Hauptkamera.
 - **Bewegung:** Optional. Bei `motion.enabled` und `motion.switchCamera` schalten `Motion`, `MotionAlarm` und `PeopleDetect` an der PoE-Klingel für `motion.timeout` (Standard 10 Sekunden) auf diese Kamera. Eine laufende Klingelansicht wird davon nicht unterbrochen.
 - **Leerlauf:** Ist die Hauptkamera aus, zeigt das Modul `infoText`. Mit `showPlaceholder: false` bleibt die Fläche unsichtbar.
 - **Lokal begrenzt:** Der Bildserver hört nur auf `127.0.0.1`. Kamera-Adressen müssen private LAN-IPs sein. Zugangsdaten liegen in `credentials.json` und werden nicht versioniert.
@@ -19,7 +19,7 @@ Nur die PoE-Klingel braucht den Indikator `poe: true`. Daran hängt der ONVIF-Di
 - MagicMirror²
 - `ffmpeg` im `PATH`
 - Reolink-Kameras im LAN, Namen frei
-- PoE-Klingel mit `poe: true`. Eine WLAN-Doorbell überträgt den ONVIF-Dienst nicht
+- PoE-Klingel mit `doorbell: true`. Eine WLAN-Doorbell überträgt den ONVIF-Dienst nicht
 
 ## Installation
 
@@ -78,13 +78,13 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
       rtspPort: 554,
       stream: "Preview_01_sub",
       onvifPort: 8000,
-      poe: true
+      doorbell: true
     }
   }
 }
 ```
 
-`garden` und `garage` sind nur Standorte. Weitere Kameras kommen genauso dazu. `poe: true` ist der Indikator der PoE-Klingel, der Name daneben ist frei. Ein Eintrag, der schon `doorbell` heißt, gilt auch ohne `poe: true` als PoE-Klingel.
+`garden` und `garage` sind nur Standorte. Weitere Kameras kommen genauso dazu. `doorbell: true` ist der Indikator der PoE-Klingel, der Name daneben ist frei. Ein Eintrag, der schon `doorbell` heißt, gilt auch ohne das Feld als PoE-Klingel.
 
 | Option | Bedeutung |
 | --- | --- |
@@ -99,7 +99,7 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
 | `settings.motion.switchCamera` | Bei Bewegung auf die PoE-Klingel schalten |
 | `settings.motion.timeout` | Anzeigedauer nach Bewegung, in Millisekunden |
 | Kameraname | Frei wählbar, nur der Standort. Fest ist die IP |
-| `poe` | Indikator der PoE-Klingel. WLAN-Doorbells übertragen den Dienst nicht |
+| `doorbell` | `true` markiert die PoE-Klingel. Eine WLAN-Doorbell überträgt den Dienst nicht |
 | `onvifPort` | ONVIF-Port der PoE-Klingel, Standard `8000` |
 
 `stream` ist der RTSP-Pfad der Kamera, zum Beispiel `Preview_01_sub` für den Substream.
