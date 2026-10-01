@@ -46,6 +46,13 @@ cp credentials.json.sample credentials.json
 
 Put the username and password in `credentials.json`. Each key matches the camera name you chose.
 
+## Update
+
+```bash
+cd ~/MagicMirror/modules/MMM-Reolink
+git pull
+```
+
 ## Configuration
 
 ```js
@@ -95,7 +102,7 @@ Put the username and password in `credentials.json`. Each key matches the camera
       doorbell: true
     }
   }
-}
+},
 ```
 
 `garden` and `garage` are only locations. Add more cameras the same way. `doorbell: true` marks the PoE doorbell. The name next to it is free. An entry that is already named `doorbell` still counts as the PoE doorbell without that field.
@@ -121,3 +128,7 @@ Put the username and password in `credentials.json`. Each key matches the camera
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

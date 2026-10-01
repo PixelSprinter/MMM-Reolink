@@ -1,7 +1,22 @@
 {
   "name": "mmm-reolink",
   "version": "0.1.0",
-  "description": "Local Reolink integration for MagicMirror",
-  "main": "node_helper.js",
-  "dependencies": {}
+  "description": "Local Reolink cameras and a PoE doorbell for MagicMirror²",
+  "keywords": [
+    "MagicMirror",
+    "reolink",
+    "camera",
+    "doorbell"
+  ],
+  "homepage": "https://github.com/PixelSprinter/MMM-Reolink#readme",
+  "bugs": {
+    "url": "https://github.com/PixelSprinter/MMM-Reolink/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PixelSprinter/MMM-Reolink.git"
+  },
+  "license": "MIT",
+  "author": "PixelSprinter (https://github.com/PixelSprinter)",
+  "main": "MMM-Reolink.js"
 }

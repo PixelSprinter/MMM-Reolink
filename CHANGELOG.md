@@ -13,6 +13,7 @@ First public version. Releases below 1.0.0 can still change the configuration. T
 - Optionally switch to the PoE doorbell on `Motion`, `MotionAlarm`, and `PeopleDetect`. A ring that is already showing is not replaced by motion.
 - Mark the PoE doorbell with `doorbell: true`. Camera names stay free and only name the location.
 - Keep passwords in `credentials.json`, with `credentials.json.sample` in the repository.
+- License the module under MIT.
 
 ### Notes
 
