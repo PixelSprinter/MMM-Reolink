@@ -117,3 +117,7 @@ Put the username and password in `credentials.json`. Each key matches the camera
 | `onvifPort` | ONVIF port of the PoE doorbell, default `8000` |
 
 `stream` is the camera RTSP path, for example `Preview_01_sub` for the sub stream.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
