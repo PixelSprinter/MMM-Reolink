@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0 (2026-10-01)
+## 0.1.0 (2026-10-01)
 
-First public version.
+First public version. Releases below 1.0.0 can still change the configuration. There is no compatibility promise yet.
 
 ### Added
 
