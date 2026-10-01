@@ -15,18 +15,18 @@ Only the PoE doorbell needs the indicator `doorbell: true`. That is what attache
 - **Many cameras:** Names are free, each with its own IP.
 - **PoE doorbell:** The entry with `doorbell: true` receives ring and motion events.
 - **Motion:** Optional. With `motion.enabled` and `motion.switchCamera`, `Motion`, `MotionAlarm`, and `PeopleDetect` on the PoE doorbell switch to that camera for `motion.timeout` (10 seconds by default).
+- **Idle:** If the main camera is off, the module shows `infoText`. With `showPlaceholder: false` the area stays hidden.
+- **Local only:** The picture server listens on `127.0.0.1`. Camera addresses must be private LAN IPs. Credentials live in `credentials.json` and are not committed.
 
 ## Main camera and doorbell switch
 
-One picture is on screen at a time. `settings.mainCamera` is the camera that runs in normal use, for example `garden`. Other cameras such as `garage` stay configured and do not appear until you set `mainCamera` to that name.
+One picture is on screen at a time. Any configured camera can be the main camera. Set `settings.mainCamera` to its name: `garden`, `garage`, `livingroom`, or the doorbell itself.
 
-A ring on the PoE doorbell sends an ONVIF `Visitor` event. The module switches the stream to the camera marked with `doorbell: true` and keeps it there for `doorbellTimeout` (30 seconds by default). Then it switches back to `mainCamera`.
+A ring on the PoE doorbell sends an ONVIF `Visitor` event. The module switches the stream to the camera marked with `doorbell: true` and keeps it there for `doorbellTimeout` (30 seconds by default). Then it switches back to whichever camera is `mainCamera`.
 
-If the main camera is turned off, the stream stops after that timeout and the module shows `infoText`, or stays hidden when `showPlaceholder` is `false`.
+If that main camera is turned off, the stream stops after the timeout and the module shows `infoText`, or stays hidden when `showPlaceholder` is `false`.
 
 Motion can switch to the same doorbell camera for the shorter `motion.timeout`. A ring that is already on screen is not replaced by motion. Another ring restarts the doorbell timeout.
-- **Idle:** If the main camera is off, the module shows `infoText`. With `showPlaceholder: false` the area stays hidden.
-- **Local only:** The picture server listens on `127.0.0.1`. Camera addresses must be private LAN IPs. Credentials live in `credentials.json` and are not committed.
 
 ## Requirements
 
@@ -104,7 +104,7 @@ Put the username and password in `credentials.json`. Each key matches the camera
 | --- | --- |
 | `enabled` | Turn the module on or off |
 | `videoPort` | Local port for the pictures, default `8090` |
-| `settings.mainCamera` | Name of the main camera, free to choose |
+| `settings.mainCamera` | Any configured camera can be the main camera |
 | `settings.doorbellTimeout` | How long the doorbell stays on screen, in milliseconds |
 | `settings.border` | Picture border width |
 | `settings.showPlaceholder` | Show a notice when no picture is running |
