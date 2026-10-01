@@ -120,7 +120,10 @@ Module.register("MMM-Reolink", {
     }
 
     if (notification === "REOLINK_DOORBELL") {
-      this.showCamera("doorbell", "visitor");
+      this.showCamera(
+        (payload && payload.camera) || "doorbell",
+        "visitor"
+      );
     }
 
     if (notification === "REOLINK_MOTION") {
