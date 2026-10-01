@@ -1,40 +1,42 @@
 # MMM-Reolink
 
-Dieses Modul stammt nicht von Reolink. Ich bin nicht Reolink, und das Projekt steht in keiner Verbindung zu Reolink. Reolink ist eine Marke der jeweiligen Inhaber. Das Modul wird nicht von Reolink entwickelt, geprüft oder unterstützt.
+> **Disclaimer:**
+>
+> This project is **not** an official Reolink product and is not affiliated with, endorsed by, or supported by Reolink Innovation Limited or any of its subsidiaries. Reolink is a trademark of its respective owner. The software is provided without warranty, including accuracy, completeness, or error-free operation of the camera picture and events. Use is at your own risk.
 
-Zeigt Reolink-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream wird mit ffmpeg in Einzelbilder gewandelt und nur auf `127.0.0.1` ausgeliefert. Passwörter stehen nicht in der Mirror-Konfiguration.
+Shows Reolink cameras from the local network on MagicMirror². ffmpeg turns the RTSP stream into still images, served only on `127.0.0.1`. Passwords are not stored in the MagicMirror configuration.
 
-Reolink hat viele Kameras. Jede bekommt einen freien Namen, nur als Standort, zum Beispiel `garden`, `garage` oder `wohnzimmer`. Fest ist die IP in der Konfiguration.
+Reolink offers many cameras. Each one gets a name you choose, used only as a location, for example `garden`, `garage`, or `livingroom`. The fixed value is the camera IP in the configuration.
 
-Nur die PoE-Klingel braucht den Indikator `doorbell: true`. Daran hängt der ONVIF-Dienst für Klingeln und Bewegung. Eine WLAN-Doorbell überträgt diesen Dienst nicht und geht deshalb nicht.
+Only the PoE doorbell needs the indicator `doorbell: true`. That is what attaches the ONVIF service for rings and motion. A Wi-Fi doorbell does not provide that service, so it does not work.
 
-## Funktionen
+## Features
 
-- **Viele Kameras:** Namen frei wählbar, jede mit eigener IP. Die Hauptkamera läuft, solange sie aktiviert ist.
-- **PoE-Klingel:** Der Eintrag mit `doorbell: true`. Ein ONVIF-Event `Visitor` schaltet das Bild auf diese Kamera. Nach `doorbellTimeout` (Standard 30 Sekunden) geht die Ansicht zurück zur Hauptkamera.
-- **Bewegung:** Optional. Bei `motion.enabled` und `motion.switchCamera` schalten `Motion`, `MotionAlarm` und `PeopleDetect` an der PoE-Klingel für `motion.timeout` (Standard 10 Sekunden) auf diese Kamera. Eine laufende Klingelansicht wird davon nicht unterbrochen.
-- **Leerlauf:** Ist die Hauptkamera aus, zeigt das Modul `infoText`. Mit `showPlaceholder: false` bleibt die Fläche unsichtbar.
-- **Lokal begrenzt:** Der Bildserver hört nur auf `127.0.0.1`. Kamera-Adressen müssen private LAN-IPs sein. Zugangsdaten liegen in `credentials.json` und werden nicht versioniert.
+- **Many cameras:** Names are free, each with its own IP. The main camera stays on screen while it is enabled.
+- **PoE doorbell:** The entry with `doorbell: true`. An ONVIF `Visitor` event switches the picture to that camera. After `doorbellTimeout` (30 seconds by default) the view returns to the main camera.
+- **Motion:** Optional. With `motion.enabled` and `motion.switchCamera`, `Motion`, `MotionAlarm`, and `PeopleDetect` on the PoE doorbell switch to that camera for `motion.timeout` (10 seconds by default). Motion does not interrupt a doorbell view that is already showing.
+- **Idle:** If the main camera is off, the module shows `infoText`. With `showPlaceholder: false` the area stays hidden.
+- **Local only:** The picture server listens on `127.0.0.1`. Camera addresses must be private LAN IPs. Credentials live in `credentials.json` and are not committed.
 
-## Voraussetzung
+## Requirements
 
 - MagicMirror²
-- `ffmpeg` im `PATH`
-- Reolink-Kameras im LAN, Namen frei
-- PoE-Klingel mit `doorbell: true`. Eine WLAN-Doorbell überträgt den ONVIF-Dienst nicht
+- `ffmpeg` on `PATH`
+- Reolink cameras on the LAN, with names you choose
+- A PoE doorbell marked with `doorbell: true`. A Wi-Fi doorbell does not provide the ONVIF service
 
 ## Installation
 
 ```bash
 cd ~/MagicMirror/modules
-git clone git@github.com:PixelSprinter/MMM-Reolink.git
+git clone https://github.com/PixelSprinter/MMM-Reolink.git
 cd MMM-Reolink
 cp credentials.json.sample credentials.json
 ```
 
-In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspricht dem frei gewählten Kameranamen.
+Put the username and password in `credentials.json`. Each key matches the camera name you chose.
 
-## Konfiguration
+## Configuration
 
 ```js
 {
@@ -86,22 +88,22 @@ In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspr
 }
 ```
 
-`garden` und `garage` sind nur Standorte. Weitere Kameras kommen genauso dazu. `doorbell: true` ist der Indikator der PoE-Klingel, der Name daneben ist frei. Ein Eintrag, der schon `doorbell` heißt, gilt auch ohne das Feld als PoE-Klingel.
+`garden` and `garage` are only locations. Add more cameras the same way. `doorbell: true` marks the PoE doorbell. The name next to it is free. An entry that is already named `doorbell` still counts as the PoE doorbell without that field.
 
-| Option | Bedeutung |
+| Option | Meaning |
 | --- | --- |
-| `enabled` | Modul ein- oder ausschalten |
-| `videoPort` | Lokaler Port für die Bilder, Standard `8090` |
-| `settings.mainCamera` | Name der Hauptkamera, frei wählbar |
-| `settings.doorbellTimeout` | Anzeigedauer nach dem Klingeln, in Millisekunden |
-| `settings.border` | Rahmenstärke des Bildes |
-| `settings.showPlaceholder` | Hinweis anzeigen, wenn kein Bild läuft |
-| `settings.infoText` | Text dieses Hinweises |
-| `settings.motion.enabled` | Bewegungs-Events der PoE-Klingel auswerten |
-| `settings.motion.switchCamera` | Bei Bewegung auf die PoE-Klingel schalten |
-| `settings.motion.timeout` | Anzeigedauer nach Bewegung, in Millisekunden |
-| Kameraname | Frei wählbar, nur der Standort. Fest ist die IP |
-| `doorbell` | `true` markiert die PoE-Klingel. Eine WLAN-Doorbell überträgt den Dienst nicht |
-| `onvifPort` | ONVIF-Port der PoE-Klingel, Standard `8000` |
+| `enabled` | Turn the module on or off |
+| `videoPort` | Local port for the pictures, default `8090` |
+| `settings.mainCamera` | Name of the main camera, free to choose |
+| `settings.doorbellTimeout` | How long the doorbell stays on screen, in milliseconds |
+| `settings.border` | Picture border width |
+| `settings.showPlaceholder` | Show a notice when no picture is running |
+| `settings.infoText` | Text of that notice |
+| `settings.motion.enabled` | Handle motion events from the PoE doorbell |
+| `settings.motion.switchCamera` | Switch to the PoE doorbell on motion |
+| `settings.motion.timeout` | How long motion stays on screen, in milliseconds |
+| Camera name | Free, location only. The IP is the fixed value |
+| `doorbell` | `true` marks the PoE doorbell. A Wi-Fi doorbell does not provide the service |
+| `onvifPort` | ONVIF port of the PoE doorbell, default `8000` |
 
-`stream` ist der RTSP-Pfad der Kamera, zum Beispiel `Preview_01_sub` für den Substream.
+`stream` is the camera RTSP path, for example `Preview_01_sub` for the sub stream.
