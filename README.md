@@ -1,14 +1,16 @@
 # MMM-Reolink
 
-Zeigt Reolink-PoE-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream wird mit ffmpeg in Einzelbilder gewandelt und nur auf `127.0.0.1` ausgeliefert. Passwörter stehen nicht in der Mirror-Konfiguration.
+Zeigt Reolink-Kameras aus dem lokalen Netz auf dem MagicMirror. Der RTSP-Stream wird mit ffmpeg in Einzelbilder gewandelt und nur auf `127.0.0.1` ausgeliefert. Passwörter stehen nicht in der Mirror-Konfiguration.
 
-Es gehen nur PoE-Kameras. Die Klingel ist eine PoE-Klingel. WLAN-Doorbells liefern keinen dauerhaften RTSP-Stream und keine ONVIF-Events und werden nicht unterstützt.
+Die Kameras am Standort sind WLAN, zum Beispiel `garden`. Der Name ist nur der Ort: `garden`, `garage`, `wohnzimmer` oder ein anderer Begriff. Weitere WLAN-Kameras kommen als eigene Einträge dazu.
+
+`doorbell` ist die PoE-Klingel. Die unterscheidet sich von den WLAN-Kameras durch das PoE-Format und liefert die ONVIF-Events. Eine WLAN-Doorbell ist das nicht.
 
 ## Funktionen
 
-- **Kameras mit freiem Namen:** Jede PoE-Kamera bekommt einen eigenen Namen, zum Beispiel `garden` oder `einfahrt`. Weitere Kameras kommen als zusätzliche Einträge dazu. Die Hauptkamera läuft, solange sie aktiviert ist.
-- **PoE-Klingel:** Der Eintrag mit `onvifPort` ist die PoE-Klingel. Ein ONVIF-Event `Visitor` schaltet das Bild auf diese Kamera. Nach `doorbellTimeout` (Standard 30 Sekunden) geht die Ansicht zurück zur Hauptkamera.
-- **Bewegung:** Optional. Bei `motion.enabled` und `motion.switchCamera` schalten `Motion`, `MotionAlarm` und `PeopleDetect` an der PoE-Klingel für `motion.timeout` (Standard 10 Sekunden) auf diese Kamera. Eine laufende Klingelansicht wird davon nicht unterbrochen.
+- **WLAN-Kameras:** Standortnamen wie `garden`, `garage` oder `wohnzimmer`. Die Hauptkamera läuft, solange sie aktiviert ist.
+- **PoE-Klingel:** Der Eintrag `doorbell`. Ein ONVIF-Event `Visitor` schaltet das Bild auf die Klingel. Nach `doorbellTimeout` (Standard 30 Sekunden) geht die Ansicht zurück zur Hauptkamera.
+- **Bewegung:** Optional. Bei `motion.enabled` und `motion.switchCamera` schalten `Motion`, `MotionAlarm` und `PeopleDetect` an der PoE-Klingel für `motion.timeout` (Standard 10 Sekunden) auf `doorbell`. Eine laufende Klingelansicht wird davon nicht unterbrochen.
 - **Leerlauf:** Ist die Hauptkamera aus, zeigt das Modul `infoText`. Mit `showPlaceholder: false` bleibt die Fläche unsichtbar.
 - **Lokal begrenzt:** Der Bildserver hört nur auf `127.0.0.1`. Kamera-Adressen müssen private LAN-IPs sein. Zugangsdaten liegen in `credentials.json` und werden nicht versioniert.
 
@@ -16,7 +18,8 @@ Es gehen nur PoE-Kameras. Die Klingel ist eine PoE-Klingel. WLAN-Doorbells liefe
 
 - MagicMirror²
 - `ffmpeg` im `PATH`
-- Reolink-PoE-Kameras im LAN, die Klingel als PoE-Klingel mit ONVIF-Events
+- Reolink-WLAN-Kameras im LAN
+- PoE-Klingel unter dem Namen `doorbell`, mit ONVIF-Events
 
 ## Installation
 
@@ -27,7 +30,7 @@ cd MMM-Reolink
 cp credentials.json.sample credentials.json
 ```
 
-In `credentials.json` Benutzername und Passwort eintragen. Die Schlüssel sind frei wählbar und müssen zum Kameranamen oder zum Feld `credential` passen.
+In `credentials.json` Benutzername und Passwort eintragen. Der Schlüssel entspricht dem Kameranamen, bei der Klingel also `doorbell`.
 
 ## Konfiguration
 
@@ -60,9 +63,9 @@ In `credentials.json` Benutzername und Passwort eintragen. Die Schlüssel sind f
       stream: "Preview_01_sub"
     },
 
-    haustuer: {
+    doorbell: {
       enabled: true,
-      credential: "haustuer",
+      credential: "doorbell",
       ip: "192.168.1.92",
       rtspPort: 554,
       stream: "Preview_01_sub",
@@ -72,21 +75,22 @@ In `credentials.json` Benutzername und Passwort eintragen. Die Schlüssel sind f
 }
 ```
 
-`garden` und `haustuer` sind Beispiele. Weitere PoE-Kameras werden genauso ergänzt. `onvifPort` markiert die PoE-Klingel. Ein Eintrag namens `doorbell` gilt auch ohne gesetztes `onvifPort` als PoE-Klingel.
+`garden` ist die WLAN-Kamera und nur ein Standortname. Dieselbe Form gilt für `garage`, `wohnzimmer` und weitere Orte. `doorbell` bleibt der Name der PoE-Klingel.
 
 | Option | Bedeutung |
 | --- | --- |
 | `enabled` | Modul ein- oder ausschalten |
 | `videoPort` | Lokaler Port für die Bilder, Standard `8090` |
-| `settings.mainCamera` | Name der Hauptkamera, frei wählbar |
+| `settings.mainCamera` | Standortname der WLAN-Kamera, zum Beispiel `garden` |
 | `settings.doorbellTimeout` | Anzeigedauer nach dem Klingeln, in Millisekunden |
 | `settings.border` | Rahmenstärke des Bildes |
 | `settings.showPlaceholder` | Hinweis anzeigen, wenn kein Bild läuft |
 | `settings.infoText` | Text dieses Hinweises |
 | `settings.motion.enabled` | Bewegungs-Events der PoE-Klingel auswerten |
-| `settings.motion.switchCamera` | Bei Bewegung auf die PoE-Klingel schalten |
+| `settings.motion.switchCamera` | Bei Bewegung auf `doorbell` schalten |
 | `settings.motion.timeout` | Anzeigedauer nach Bewegung, in Millisekunden |
-| Kameraname | Frei wählbar. Kamera an, Zugangsdaten-Schlüssel, IP, RTSP-Port, Stream-Pfad |
-| `onvifPort` | ONVIF-Port der PoE-Klingel, Standard `8000` |
+| Standortname | WLAN-Kamera. Name nur als Ort, zum Beispiel `garden` oder `wohnzimmer` |
+| `doorbell` | PoE-Klingel, fest dieser Name |
+| `doorbell.onvifPort` | ONVIF-Port der PoE-Klingel, Standard `8000` |
 
 `stream` ist der RTSP-Pfad der Kamera, zum Beispiel `Preview_01_sub` für den Substream.

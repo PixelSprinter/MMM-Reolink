@@ -21,7 +21,14 @@ module.exports = NodeHelper.create({
     this.latestFrame = null;
     this.boundary = "--reolinkframe";
 
-    this.doorbells = {};
+    this.onvifEventUrl = null;
+    this.onvifSubscription = null;
+    this.onvifUsername = null;
+    this.onvifPassword = null;
+    this.onvifPullGen = 0;
+    this.onvifRenewTimer = null;
+    this.onvifBusy = false;
+    this.onvifPullLogged = false;
     this.ffmpegStopping = false;
     this.streamWatchdog = null;
 
@@ -119,14 +126,6 @@ module.exports = NodeHelper.create({
       return null;
     }
 
-    if (!/^[A-Za-z0-9_-]+$/.test(name)) {
-      console.error(
-        "[MMM-Reolink] Ungültiger Kameraname:",
-        name
-      );
-      return null;
-    }
-
     const credential = String(camera.credential || name);
 
     if (!/^[A-Za-z0-9_-]+$/.test(credential)) {
@@ -141,8 +140,7 @@ module.exports = NodeHelper.create({
       stream: stream
     };
 
-    // PoE-Klingel: eigener onvifPort, oder der bisherige Name "doorbell"
-    if (name === "doorbell" || camera.onvifPort != null) {
+    if (name === "doorbell" || camera.onvifPort) {
       clean.onvifPort = onvifPort;
     }
 
@@ -191,11 +189,19 @@ module.exports = NodeHelper.create({
       );
     });
 
-    if (cameraNames.length === 0) {
+    if (!cameraNames.includes("doorbell")) {
       return null;
     }
 
     for (const name of cameraNames) {
+      if (!/^[A-Za-z0-9_-]+$/.test(name)) {
+        console.error(
+          "[MMM-Reolink] Ungültiger Kameraname:",
+          name
+        );
+        return null;
+      }
+
       const clean = this.sanitizeCameraConfig(name, payload[name]);
 
       if (!clean) {
@@ -205,10 +211,15 @@ module.exports = NodeHelper.create({
       config[name] = clean;
     }
 
-    const requested = String(settingsIn.mainCamera || "");
-    config.settings.mainCamera = config[requested]
-      ? requested
-      : (config.garden ? "garden" : cameraNames[0]);
+    const requested = String(settingsIn.mainCamera || "garden");
+
+    if (requested === "doorbell") {
+      config.settings.mainCamera = "doorbell";
+    } else if (config[requested]) {
+      config.settings.mainCamera = requested;
+    } else if (config.garden) {
+      config.settings.mainCamera = "garden";
+    }
 
     return config;
   },
@@ -646,57 +657,55 @@ module.exports = NodeHelper.create({
   },
 
   startDoorbellEvents() {
-    this.doorbells = {};
+
+    const camera =
+      this.config?.doorbell;
+
+    if (!camera || !camera.enabled) {
+      return;
+    }
+
     this.loadCredentials();
 
-    for (const name of Object.keys(this.config || {})) {
-      const camera = this.config[name];
+    const credential =
+      this.credentials[camera.credential];
 
-      if (!camera || !camera.onvifPort || !camera.enabled) {
-        continue;
-      }
+    if (
+      !credential?.username ||
+      !credential?.password
+    ) {
 
-      const credential = this.credentials[camera.credential];
-
-      if (!credential?.username || !credential?.password) {
-        console.error(
-          "[MMM-Reolink] PoE-Klingel-Zugangsdaten fehlen:",
-          name
-        );
-        continue;
-      }
-
-      this.doorbells[name] = {
-        eventUrl:
-          "http://" +
-          camera.ip +
-          ":" +
-          camera.onvifPort +
-          "/onvif/event_service",
-        subscription: null,
-        username: credential.username,
-        password: credential.password,
-        pullGen: 0,
-        renewTimer: null,
-        busy: false,
-        pullLogged: false
-      };
-
-      console.log(
-        "[MMM-Reolink] ONVIF Event-Service:",
-        name,
-        this.doorbells[name].eventUrl
+      console.error(
+        "[MMM-Reolink] Doorbell-Zugangsdaten fehlen"
       );
 
-      this.createPullPointSubscription(name);
+      return;
     }
+
+    this.onvifEventUrl =
+      "http://" +
+      camera.ip +
+      ":" +
+      (camera.onvifPort || 8000) +
+      "/onvif/event_service";
+
+    this.onvifUsername =
+      credential.username;
+
+    this.onvifPassword =
+      credential.password;
+
+    console.log(
+      "[MMM-Reolink] ONVIF Event-Service:",
+      this.onvifEventUrl
+    );
+
+    this.createPullPointSubscription();
   },
 
-  createPullPointSubscription(name) {
+  createPullPointSubscription() {
 
-    const session = this.doorbells[name];
-
-    if (!session || !session.eventUrl) {
+    if (!this.onvifEventUrl) {
       return;
     }
 
@@ -711,35 +720,26 @@ module.exports = NodeHelper.create({
       "</wsdl:CreatePullPointSubscription>";
 
     const body = this.buildOnvifEnvelope(
-      session,
       action,
       null,
       innerBody
     );
 
     this.soapRequest(
-      session,
-      session.eventUrl,
+      this.onvifEventUrl,
       body,
       action,
       20,
       (err, xml) => {
 
-        const current = this.doorbells[name];
-
-        if (!current) {
-          return;
-        }
-
         if (err) {
           console.error(
             "[MMM-Reolink] PullPoint Subscription:",
-            name,
             err.message
           );
 
           setTimeout(
-            () => this.createPullPointSubscription(name),
+            () => this.createPullPointSubscription(),
             30000
           );
 
@@ -757,49 +757,45 @@ module.exports = NodeHelper.create({
 
           console.error(
             "[MMM-Reolink] PullPoint keine Subscription-Adresse" +
-            (fault ? ": " + fault : ""),
-            name
+            (fault ? ": " + fault : "")
           );
 
           setTimeout(
-            () => this.createPullPointSubscription(name),
+            () => this.createPullPointSubscription(),
             30000
           );
 
           return;
         }
 
-        current.subscription = address;
-        current.pullGen += 1;
+        this.onvifSubscription = address;
+        this.onvifPullGen += 1;
 
         console.log(
-          "[MMM-Reolink] PullPoint Subscription OK:",
-          name
+          "[MMM-Reolink] PullPoint Subscription OK"
         );
 
-        this.scheduleSubscriptionRenewal(name);
-        this.pullDoorbellMessages(name, current.pullGen);
+        this.scheduleSubscriptionRenewal();
+        this.pullDoorbellMessages(this.onvifPullGen);
       }
     );
   },
 
-  pullDoorbellMessages(name, gen) {
+  pullDoorbellMessages(gen) {
 
-    const session = this.doorbells[name];
-
-    if (!session || !session.subscription) {
+    if (!this.onvifSubscription) {
       return;
     }
 
-    if (gen !== session.pullGen) {
+    if (gen !== this.onvifPullGen) {
       return;
     }
 
-    if (session.busy) {
+    if (this.onvifBusy) {
       return;
     }
 
-    session.busy = true;
+    this.onvifBusy = true;
 
     const action =
       "http://www.onvif.org/ver10/events/wsdl/" +
@@ -812,29 +808,21 @@ module.exports = NodeHelper.create({
       "</wsdl:PullMessages>";
 
     const body = this.buildOnvifEnvelope(
-      session,
       action,
-      session.subscription,
+      this.onvifSubscription,
       innerBody
     );
 
     this.soapRequest(
-      session,
-      session.eventUrl,
+      this.onvifEventUrl,
       body,
       action,
       90,
       (err, xml) => {
 
-        const current = this.doorbells[name];
+        this.onvifBusy = false;
 
-        if (!current) {
-          return;
-        }
-
-        current.busy = false;
-
-        if (gen !== current.pullGen) {
+        if (gen !== this.onvifPullGen) {
           return;
         }
 
@@ -842,38 +830,34 @@ module.exports = NodeHelper.create({
 
           console.error(
             "[MMM-Reolink] PullMessages:",
-            name,
             err.message
           );
 
-          current.subscription = null;
+          this.onvifSubscription = null;
 
           setTimeout(
-            () => this.createPullPointSubscription(name),
+            () => this.createPullPointSubscription(),
             10000
           );
 
           return;
         }
 
-        this.processDoorbellEvents(name, xml);
+        this.processDoorbellEvents(xml);
 
-        if (!current.pullLogged) {
-          current.pullLogged = true;
-          console.log(
-            "[MMM-Reolink] ONVIF PullMessages aktiv:",
-            name
-          );
+        if (!this.onvifPullLogged) {
+          this.onvifPullLogged = true;
+          console.log("[MMM-Reolink] ONVIF PullMessages aktiv");
         }
 
         setImmediate(
-          () => this.pullDoorbellMessages(name, gen)
+          () => this.pullDoorbellMessages(gen)
         );
       }
     );
   },
 
-  processDoorbellEvents(name, xml) {
+  processDoorbellEvents(xml) {
 
     if (!xml) {
       return;
@@ -951,10 +935,10 @@ module.exports = NodeHelper.create({
     }
 
     if (visitor) {
-      console.log("[MMM-Reolink] PoE-Klingel geklingelt:", name);
+      console.log("[MMM-Reolink] Doorbell geklingelt");
 
       this.sendSocketNotification("REOLINK_DOORBELL", {
-        camera: name
+        camera: "doorbell"
       });
     }
 
@@ -969,46 +953,37 @@ module.exports = NodeHelper.create({
       }
 
       const now = Date.now();
-      this._lastMotionLog = this._lastMotionLog || {};
 
       if (
-        !this._lastMotionLog[name] ||
-        now - this._lastMotionLog[name] > 5000
+        !this._lastMotionLog ||
+        now - this._lastMotionLog > 5000
       ) {
-        this._lastMotionLog[name] = now;
-        console.log("[MMM-Reolink] Motion erkannt:", name);
+        this._lastMotionLog = now;
+        console.log("[MMM-Reolink] Motion erkannt (doorbell)");
       }
 
       this.sendSocketNotification("REOLINK_MOTION", {
-        camera: name
+        camera: "doorbell"
       });
     }
   },
 
-  scheduleSubscriptionRenewal(name) {
+  scheduleSubscriptionRenewal() {
 
-    const session = this.doorbells[name];
-
-    if (!session) {
-      return;
+    if (this.onvifRenewTimer) {
+      clearTimeout(this.onvifRenewTimer);
     }
 
-    if (session.renewTimer) {
-      clearTimeout(session.renewTimer);
-    }
-
-    session.renewTimer = setTimeout(
-      () => this.renewPullPointSubscription(name),
+    this.onvifRenewTimer = setTimeout(
+      () => this.renewPullPointSubscription(),
       8 * 60 * 1000
     );
   },
 
-  renewPullPointSubscription(name) {
+  renewPullPointSubscription() {
 
-    const session = this.doorbells[name];
-
-    if (!session || !session.subscription) {
-      this.createPullPointSubscription(name);
+    if (!this.onvifSubscription) {
+      this.createPullPointSubscription();
       return;
     }
 
@@ -1021,46 +996,37 @@ module.exports = NodeHelper.create({
       "</b:Renew>";
 
     const body = this.buildOnvifEnvelope(
-      session,
       action,
-      session.subscription,
+      this.onvifSubscription,
       innerBody
     );
 
     this.soapRequest(
-      session,
-      session.eventUrl,
+      this.onvifEventUrl,
       body,
       action,
       20,
       (err, xml) => {
 
-        const current = this.doorbells[name];
-
-        if (!current) {
-          return;
-        }
-
         if (err || (xml && /Fault/i.test(xml) && !/RenewResponse/i.test(xml))) {
 
           console.error(
-            "[MMM-Reolink] PullPoint Renew fehlgeschlagen, neue Subscription:",
-            name
+            "[MMM-Reolink] PullPoint Renew fehlgeschlagen, neue Subscription"
           );
 
-          current.subscription = null;
-          this.createPullPointSubscription(name);
+          this.onvifSubscription = null;
+          this.createPullPointSubscription();
           return;
         }
 
-        console.log("[MMM-Reolink] PullPoint Renew OK:", name);
-        this.scheduleSubscriptionRenewal(name);
+        console.log("[MMM-Reolink] PullPoint Renew OK");
+        this.scheduleSubscriptionRenewal();
       }
     );
   },
 
   // Matches reolink_aio templates.py PULLPOINT/PULLMESSAGE/RENEW
-  buildOnvifEnvelope(session, action, to, innerBody) {
+  buildOnvifEnvelope(action, to, innerBody) {
 
     const tokenId = crypto.randomUUID();
     const nonce = crypto.randomBytes(16);
@@ -1076,7 +1042,7 @@ module.exports = NodeHelper.create({
           Buffer.concat([
             nonce,
             Buffer.from(created, "utf8"),
-            Buffer.from((session && session.password) || "", "utf8")
+            Buffer.from(this.onvifPassword || "", "utf8")
           ])
         )
         .digest("base64");
@@ -1098,7 +1064,7 @@ module.exports = NodeHelper.create({
       'xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">' +
       '<wsse:UsernameToken wsu:Id="UsernameToken-' + tokenId + '">' +
       "<wsse:Username>" +
-      this.xmlEscape((session && session.username) || "") +
+      this.xmlEscape(this.onvifUsername || "") +
       "</wsse:Username>" +
       '<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">' +
       digest +
@@ -1139,7 +1105,7 @@ module.exports = NodeHelper.create({
     return values;
   },
 
-  buildDigestAuth(session, challenge, method, digestUri) {
+  buildDigestAuth(challenge, method, digestUri) {
     const realm = challenge.realm || "";
     const nonce = challenge.nonce || "";
     const qop = (challenge.qop || "auth").split(",")[0].trim();
@@ -1147,8 +1113,8 @@ module.exports = NodeHelper.create({
     const algorithm = challenge.algorithm || "MD5";
     const cnonce = crypto.randomBytes(8).toString("hex");
     const nc = "00000001";
-    const username = (session && session.username) || "";
-    const password = (session && session.password) || "";
+    const username = this.onvifUsername || "";
+    const password = this.onvifPassword || "";
 
     const ha1 = crypto
       .createHash("md5")
@@ -1192,7 +1158,7 @@ module.exports = NodeHelper.create({
   },
 
   // reolink_aio: Content-Type without action=; separate action header; body resent on auth
-  soapRequest(session, url, body, action, timeoutSec, callback) {
+  soapRequest(url, body, action, timeoutSec, callback) {
     const parsed = new URL(url);
     const digestUri = parsed.pathname + (parsed.search || "");
     const payload = Buffer.from(body, "utf8");
@@ -1230,7 +1196,6 @@ module.exports = NodeHelper.create({
             if (res.statusCode === 401 && www && !authorization) {
               const challenge = this.parseDigestChallenge(www);
               const auth = this.buildDigestAuth(
-                session,
                 challenge,
                 "POST",
                 digestUri
