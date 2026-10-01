@@ -30,7 +30,8 @@ Module.register("MMM-Reolink", {
       ip: "192.168.1.11",
       rtspPort: 554,
       stream: "Preview_01_sub",
-      onvifPort: 8000
+      onvifPort: 8000,
+      poe: true
     },
 
     videoPort: 8090
@@ -120,7 +121,10 @@ Module.register("MMM-Reolink", {
     }
 
     if (notification === "REOLINK_DOORBELL") {
-      this.showCamera("doorbell", "visitor");
+      this.showCamera(
+        (payload && payload.camera) || "doorbell",
+        "visitor"
+      );
     }
 
     if (notification === "REOLINK_MOTION") {

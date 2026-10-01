@@ -140,11 +140,23 @@ module.exports = NodeHelper.create({
       stream: stream
     };
 
-    if (name === "doorbell" || camera.onvifPort) {
+    // Indikator nur für die PoE-Klingel. WLAN-Kameras bleiben ohne.
+    // "doorbell" und onvifPort bleiben gültig, damit die bestehende Config läuft.
+    if (camera.poe === true || name === "doorbell" || camera.onvifPort != null) {
+      clean.poe = true;
       clean.onvifPort = onvifPort;
     }
 
     return clean;
+  },
+
+  poeDoorbellName() {
+    const names = Object.keys(this.config || {}).filter((name) => {
+      const camera = this.config[name];
+      return camera && camera.poe && camera.enabled && camera.ip;
+    });
+
+    return names[0] || null;
   },
 
   sanitizeConfig(payload) {
@@ -189,7 +201,7 @@ module.exports = NodeHelper.create({
       );
     });
 
-    if (!cameraNames.includes("doorbell")) {
+    if (cameraNames.length === 0) {
       return null;
     }
 
@@ -213,12 +225,13 @@ module.exports = NodeHelper.create({
 
     const requested = String(settingsIn.mainCamera || "garden");
 
-    if (requested === "doorbell") {
-      config.settings.mainCamera = "doorbell";
-    } else if (config[requested]) {
+    if (config[requested]) {
       config.settings.mainCamera = requested;
     } else if (config.garden) {
       config.settings.mainCamera = "garden";
+    } else {
+      const location = cameraNames.find((name) => !config[name].poe);
+      config.settings.mainCamera = location || cameraNames[0];
     }
 
     return config;
@@ -658,8 +671,10 @@ module.exports = NodeHelper.create({
 
   startDoorbellEvents() {
 
-    const camera =
-      this.config?.doorbell;
+    const name = this.poeDoorbellName();
+    const camera = name && this.config?.[name];
+
+    this.poeDoorbell = name;
 
     if (!camera || !camera.enabled) {
       return;
@@ -938,7 +953,7 @@ module.exports = NodeHelper.create({
       console.log("[MMM-Reolink] Doorbell geklingelt");
 
       this.sendSocketNotification("REOLINK_DOORBELL", {
-        camera: "doorbell"
+        camera: this.poeDoorbell || "doorbell"
       });
     }
 
@@ -963,7 +978,7 @@ module.exports = NodeHelper.create({
       }
 
       this.sendSocketNotification("REOLINK_MOTION", {
-        camera: "doorbell"
+        camera: this.poeDoorbell || "doorbell"
       });
     }
   },
