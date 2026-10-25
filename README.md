@@ -4,6 +4,8 @@
 >
 > This project is **not** an official Reolink product and is not affiliated with, endorsed by, or supported by Reolink Innovation Limited or any of its subsidiaries. Reolink is a trademark of its respective owner. The software is provided without warranty, including accuracy, completeness, or error-free operation of the camera picture and events. Use is at your own risk.
 
+![Example view](screenshot.jpg)
+
 Shows Reolink cameras from the local network on MagicMirror². ffmpeg turns the RTSP stream into still images, served only on `127.0.0.1`. Passwords are not stored in the MagicMirror configuration.
 
 Reolink offers many cameras. Each one gets a name you choose, used only as a location, for example `garden`, `garage`, or `livingroom`. The fixed value is the camera IP in the configuration.
