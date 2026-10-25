@@ -18,7 +18,7 @@ Only the PoE doorbell needs the indicator `doorbell: true`. That is what attache
 - **PoE doorbell:** The entry with `doorbell: true` receives ring and motion events.
 - **Motion:** Optional. With `motion.enabled` and `motion.switchCamera`, `Motion`, `MotionAlarm`, and `PeopleDetect` on the PoE doorbell switch to that camera for `motion.timeout` (10 seconds by default).
 - **Idle:** If the main camera is off, the module shows `infoText`. With `showPlaceholder: false` the area stays hidden.
-- **Local only:** The picture server listens on `127.0.0.1`. Camera addresses must be private LAN IPs. Credentials live in `credentials.json` and are not committed.
+- **Local only:** The picture server listens on `127.0.0.1`. Camera addresses must be private LAN IPs. Credentials live in `credentials.json`.
 
 ## Main camera and doorbell switch
 
